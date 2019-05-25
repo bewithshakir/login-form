@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+    
+    <div class="content">
+        <h1 id="heading">ShelfAware Inventory Status</h1>
+    
+        <div class="grid ">
+            <div class="cell">
+                <img id='fimg11' src='img/lays-classic.png' / height='110' width='90'>
+                <p id='live11' class='txt  w3-container ' style='top: 360px;'>0% 
+                    <span class='meter' style='width:0%; height:10%;' >&nbsp;</span>
+                </p>
+            </div>
+            <div class="cell">
+                <img id='fimg12' src='img/lays-sv.png' / height='110' width='90'>
+                <p id='live12' class='txt  w3-container ' style='top: 360px;'>0% 
+                    <span class='meter' style='width:0%; height:10%;' >&nbsp;</span>
+                </p>
+            </div>
+            <div class="cell">
+                <img id='fimg13' src='img/sf-whitech.png' / height='110' width='90'>
+                <p id='live13' class='txt  w3-container ' style='top: 360px;'>0% 
+                    <span class='meter' style='width:0%; height:10%;' >&nbsp;</span>
+                </p>
+            </div>
+            <div class="cell">
+                <img id='fimg21' src='img/doritos-coolranch.png' / height='110' width='90'>
+                <p id='live21' class='txt  w3-container ' style='top: 360px;'>
+                </p>
+            </div>
+            <div class="cell">
+                <img id='fimg21' src='img/diritos-nachocheese.png' / height='110' width='90'>
+                <p id='live21' class='txt  w3-container ' style='top: 360px;'>
+                </p>
+            </div>
+            <div class="cell">
+                <img id='fimg21' src='img/diritos-nachocheese.png' / height='110' width='90'>
+                <p id='live21' class='txt  w3-container ' style='top: 360px;'>
+                </p>
+            </div>
+        </div>            
+    </div>
+
+    <div style="text-align:center">
+        <span class="dot" id ="mstatus"></span>
+        <span id="indicator"></span>
+    </div>
+
+
+
+    <script
+  src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+  integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8="
+  crossorigin="anonymous"></script>
+  <script>
+      $(document).ready(function(){
+        var ws = new WebSocket("ws://" + 'localhost:8080');
+        ws.onopen = function() {
+        console.log("Successfully connect WebSocket");
+        };
+        ws.onmessage = function(message) {
+        var data = JSON.parse(message.data);
+
+        console.log("message", data.body);
+        console.log("message", data);
+
+
+        // $('h1').text(`Asure: ${(message.data).toString('utf8')}`);
+        
+            // var obj = JSON.parse(message.data);
+            // if (!obj.time || !obj.temperature) {
+            // return;
+            // }
+        }
+        
+      })
+  </script>
+</body>
+</html>

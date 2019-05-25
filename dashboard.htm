@@ -1,0 +1,284 @@
+<html>
+
+   <head>
+        <title>smart shelf</title>
+     
+        <link rel='stylesheet' href='https://www.w3schools.com/w3css/4/w3.css'>
+ 
+        <style>
+            .dot {
+                height: 12px;
+                width: 12px;
+                background-color: #bbb;
+                border-radius: 50%;
+                display: inline-block;
+                }
+            .grid {
+                display: flex;                       /* establish flex container */
+                flex-wrap: wrap;                     /* enable flex items to wrap */
+                justify-content: space-around;
+                background-color: aliceblue;
+                max-width: 600px;
+                align-content: center;
+                padding-top: 10px;
+                padding-left: 1px;
+                box-sizing: border-box;
+                margin: auto;
+                box-shadow: inset 0 0 0 1px white;
+    
+                }
+                .cell {
+                flex: 0 0 160px;                       /* don't grow, don't shrink, width */
+                height: 160px;
+                padding-top: 10px;
+                margin-bottom: 5px;
+                margin-top: 5px;
+                background-color: #fdfdfd;
+                box-shadow: 0px 1px 3px 0px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 2px 1px -1px rgba(0,0,0,0.12);
+                }
+                /*.cell:nth-child(3n) {
+                #background-color: #F00;
+                #}*/
+            * {
+                margin: 0;
+                padding: 0
+            }
+            .content {
+                max-width: 500px;
+                margin: auto;
+              }
+            body {
+                text-align: center
+            }
+            .imdesc {
+                display: inline-block;
+                vertical-align: middle;
+                position: relative
+            }
+            .imdesc img {
+                vertical-align: middle
+            }
+            .imdesc p {
+                text-align: center;
+                background: #fc0
+            }
+            .imdesc p.txt {
+                position: absolute;
+                top: 310px;
+                left: 40px;
+                font-size: 18px!important;
+                width: 170px;
+                padding: 5px;
+                background-color: white;
+                border: 1px solid orange;
+            }
+            #progressbar {
+                background-color: black;
+                border-radius: 13px;
+                padding: 3px
+            }
+            #progressbar>div {
+                background-color: orange;
+                width: 80%;
+                height: 20px;
+                border-radius: 10px
+            }
+            .meter {
+                display: block;
+                height: 100%;
+                background-color: rgb(43, 194, 83);
+                box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+                position: relative;
+                overflow: hidden
+            }
+            .vmeter {
+                display: block;
+                width: 100%;
+                background-color: rgb(43, 194, 83);
+                box-shadow: inset 0 2px 9px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+                position: relative;
+                overflow: hidden
+            }
+
+            
+
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript">
+       </script>
+          <script type = "text/javascript" language = "javascript">
+        var mqtt;
+        var reconnectTimeout = 2000;
+   
+        var host="m16.cloudmqtt.com"; //change this
+        var port=34531;
+        var lastMsg;
+
+        function onFailure(responseObject) {
+            console.log("Connection Attempt to Host "+host+"Failed");
+            setTimeout(MQTTconnect, reconnectTimeout);
+            var d = new Date();
+            var n = d.toLocaleTimeString();
+            document.getElementById("indicator").innerText= n + ":ConnectionLost:"+responseObject.errorMessage    ;
+            document.getElementById("mstatus").style.backgroundColor="red";
+            console.log(mqtt.getTraceLog());
+            mqtt.stopTrace();
+        }
+        function onConnectionLost(responseObject) {
+            if (responseObject.errorCode !== 0)
+                console.log("ConnectionLost:"+responseObject.errorMessage);
+            var d = new Date();
+            var n = d.toLocaleTimeString();
+      
+            document.getElementById("indicator").innerText= n + "ConnectionLost:"+responseObject.errorMessage    ;
+            document.getElementById("mstatus").style.backgroundColor="red";
+            console.log(mqtt.getTraceLog());
+            mqtt.stopTrace();
+        }
+        function onMessageArrived(msg){
+            out_msg="Message received "+msg.payloadString+"<br>";
+            out_msg=out_msg+"Message received Topic "+msg.destinationName;
+            console.log(out_msg);
+            document.getElementById("indicator").innerText="Msg:"+msg.destinationName + "/"+ msg.payloadString ;
+            //document.write(msg.payloadString);
+            var payload = (typeof msg.payloadString !== 'undefined') ? msg.payloadString : "";
+            if (payload.startsWith("sku:", 0)) {
+                payload = payload.substring(4);  // get rid of sku:
+                if (payload.indexOf(',') > -1) {
+                    var data = payload.split(','); 
+                    var element = 'fimg' + data[0]
+                    document.getElementById(element).src=data[1];
+                    //document.getElementById("fimg11").src="lays-flaming.jpg"
+                    console.log (data[1])    
+                    }
+            } else if (payload.indexOf(',') > -1) {
+                var data = payload.split(','); 
+                var ihtm = data[1] + "% <span class='meter' style='height:10%;width:" + data[1] + "%'>&nbsp;</span>";
+                var ivhtm = data[1] + "% <span class='vmeter' style='height:" + data[1] + "%'>&nbsp;</span>";
+                var element = 'live' + data[0]
+                document.getElementById(element).innerHTML= ihtm;
+                console.log (element)    
+            }
+            console.log(msg.payloadString)
+        }
+
+        function onConnect() {
+      // Once a connection has been made, make a subscription and send a message.
+
+        console.log("connected to "+ host);
+        //document.write("connected to "+ host);
+        mqtt.subscribe("smartpi");
+        message = new Paho.MQTT.Message("Karthik Connected Sucessfully");
+        message.destinationName = "smartpi";
+        mqtt.send(message);
+        document.getElementById("mstatus").style.backgroundColor="green";
+      }
+
+      function MQTTconnect() {
+        console.log("connecting to "+ host +" "+ port);
+        mqtt = new Paho.MQTT.Client(host,port,"clientjs");
+        mqtt.startTrace();
+        //document.write("connecting to "+ host);
+        var options = {
+            timeout: 3,
+            userName : "",
+            password : "",
+            useSSL : true,
+            onSuccess: onConnect,
+            onFailure: onFailure,
+             };
+        mqtt.onMessageArrived = onMessageArrived;
+        mqtt.onConnectionLost = onConnectionLost;
+        mqtt.connect(options); //connect
+        }
+
+      </script>
+   </head>
+     <body>
+
+            <div class="content">
+                    <h1>ShelfAware Inventory Status</h1>
+            <!--
+            <div class='imdesc'>
+                <img src='lays-classic2.jpg' / height='477' width='636'>
+                <p class='txt w3-dark-grey'>Cheetos Crunchy</p>
+                <p id='live3' class='txt w3-dark-grey w3-container w3-green' style='top: 360px;'>0% 
+                    <span class='meter' style='width: 0%'>&nbsp;</span>
+                </p>
+                <p class='txt w3-dark-grey' style='left: 220px;'>Cheetos Crunchy</p>
+                <p id='live2' class='txt w3-dark-grey w3-container w3-green' style='top:360px;left:220px'>0% 
+                    <span class='meter' style='width: 0%'>&nbsp;</span>
+                </p>
+                <p class='txt w3-dark-grey' style='left: 400px;'>Cheetos Puffs</p>
+                <p id='live0' class='txt w3-dark-grey w3-container w3-green' style='top:360px;left:400px'>0% 
+                    <span class='meter' style='width: 0%'>&nbsp;</span>
+                </p>
+            </div>-->
+            <div class="grid ">
+                    <div class="cell">
+                            <img id='fimg11' src='img/lays-classic.png' / height='110' width='90'>
+                            <p id='live11' class='txt  w3-container ' style='top: 360px;'>0% 
+                                <span class='meter' style='width:0%; height:10%;' >&nbsp;</span>
+                            </p>
+                    </div>
+                    <div class="cell">
+                            <img id='fimg12' src='img/lays-sv.png' / height='110' width='90'>
+                            <p id='live12' class='txt  w3-container ' style='top: 360px;'>0% 
+                                <span class='meter' style='width:0%; height:10%;' >&nbsp;</span>
+                            </p>
+                    </div>
+                    <div class="cell">
+                            <img id='fimg13' src='img/sf-whitech.png' / height='110' width='90'>
+                            <p id='live13' class='txt  w3-container ' style='top: 360px;'>0% 
+                                <span class='meter' style='width:0%; height:10%;' >&nbsp;</span>
+                            </p>
+                    </div>
+                    <div class="cell">
+                            <img id='fimg21' src='img/doritos-coolranch.png' / height='110' width='90'>
+                            <p id='live21' class='txt  w3-container ' style='top: 360px;'>
+                            </p>
+                    </div><div class="cell">
+                            <img id='fimg21' src='img/diritos-nachocheese.png' / height='110' width='90'>
+                            <p id='live21' class='txt  w3-container ' style='top: 360px;'>
+                            </p>
+                    </div><div class="cell">
+                            <img id='fimg22' src='img/doritos-blaze.png' / height='110' width='90'>
+                            <p id='live22' class='txt  w3-container ' style='top: 360px;'>
+                            </p>
+                    </div><div class="cell">
+                            <img id='fimg23' src='img/cheetos-crunchy.png' / height='110' width='90'>
+                            <p id='live23' class='txt  w3-container ' style='top: 360px;'>
+                            </p>
+                    </div>
+                    <div class="cell">
+                            <img id='fimg31' src='img/cheetos-puffs.png' / height='110' width='90'>
+                            <p id='live31' class='txt  w3-container ' style='top: 360px;'>
+                            </p>
+                    </div><div class="cell">
+                            <img id='fimg32' src='img/cheetos-fh.png' / height='110' width='90'>
+                            <p id='live32' class='txt  w3-container ' style='top: 360px;'>
+                            </p>
+                    </div>
+                    </div>            
+                </div>
+
+                <div style="text-align:center">
+
+                        <span class="dot" id ="mstatus"></span>
+                        <span id="indicator"></span>
+                      </div>
+                      
+
+                    <script>
+    MQTTconnect();
+    </script>
+
+    <script>
+            // self executing function here
+            (function() {
+                onMessageArrived("11,0");
+                onMessageArrived("12,0");
+                onMessageArrived("13,0");
+            })();
+            </script>
+   </body>  
+</html>
