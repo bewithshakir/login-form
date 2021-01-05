@@ -6,7 +6,7 @@
     "test": "echo \"No tests yet...\""
   },
   "dependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "azure-iot-device": "^1.9.9",
     "azure-iot-device-http": "^1.9.9",
     "azure-iot-device-mqtt": "^1.9.9",
